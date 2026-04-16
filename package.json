@@ -1,0 +1,39 @@
+{
+  "name": "my-dashboard",
+  "version": "1.0.0",
+  "description": "My Dashboard: control, automation and system telemetry panel for Windows",
+  "main": "main/index.js",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "sudo-prompt": "^9.2.1",
+    "systeminformation": "^5.25.11",
+    "uuid": "^11.1.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "electron": "^34.5.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.mydashboard.app",
+    "productName": "My Dashboard",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "win": {
+      "target": "nsis"
+    }
+  }
+}

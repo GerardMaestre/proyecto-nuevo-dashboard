@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self';" />
+    <title>My Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar drag-region">
+        <div class="window-controls no-drag">
+          <div class="win-btn win-close" id="btn-close" title="Cerrar"></div>
+          <div class="win-btn win-minimize" id="btn-minimize" title="Minimizar"></div>
+          <div class="win-btn win-maximize" id="btn-maximize" title="Maximizar"></div>
+        </div>
+
+        <div class="brand no-drag">
+          <span class="brand-icon">👁</span>
+          <h2>HORUS</h2>
+        </div>
+
+        <div class="search-container no-drag">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input id="script-filter-input" type="text" placeholder="Buscar (Ctrl+F)" />
+        </div>
+
+        <div class="nav-sections no-drag">
+          <nav class="nav-list" id="category-list">
+            <button class="nav-item active" data-category="all">
+              <div class="nav-icon blue-list"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></div>
+              <span class="nav-text">Todos</span>
+              <span class="badge badge-active" id="total-scripts">0</span>
+            </button>
+            <button class="nav-item" data-category="Python">
+              <div class="nav-icon py-list"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11a2 2 0 0 0 2 2h8.28a2 2 0 0 0 1.94-1.57l2.43-10Ab2 2 0 0 0 19.71 8H14z"></path></svg></div>
+              <span class="nav-text">Python</span>
+              <span class="badge" id="py-scripts">0</span>
+            </button>
+            <button class="nav-item" data-category="Batch">
+              <div class="nav-icon bat-list"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
+              <span class="nav-text">Batch</span>
+              <span class="badge" id="bat-scripts">0</span>
+            </button>
+            <button class="nav-item" data-category="Activos">
+              <div class="nav-icon green-list"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+              <span class="nav-text">Activos</span>
+              <span class="badge" id="active-scripts">0</span>
+            </button>
+          </nav>
+
+          <div class="nav-group">
+            <div class="nav-label">MODOS ESPECIALES</div>
+            <nav class="nav-list">
+              <button class="nav-item">
+                <div class="nav-icon mode-gaming">🎮</div>
+                <span class="nav-text">Gaming Extremo</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon mode-paranoia">🤫</div>
+                <span class="nav-text">Modo Paranoia</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon mode-night">🌙</div>
+                <span class="nav-text">Mantenimiento Nocturno</span>
+              </button>
+            </nav>
+          </div>
+
+          <div class="nav-group">
+            <div class="nav-label">CENTRO PRO</div>
+            <nav class="nav-list">
+              <button class="nav-item" id="btn-open-spotlight">
+                <div class="nav-icon pro-search">🔎</div>
+                <span class="nav-text">Busqueda Global</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon pro-map">🗺️</div>
+                <span class="nav-text">Mapa de Disco</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon pro-uninstall">🧩</div>
+                <span class="nav-text">Desinstalador Apps</span>
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        <div class="sidebar-footer no-drag">
+          <button class="nav-item config-btn">
+            <div class="nav-icon config-icon">⚙️</div>
+            <span class="nav-text">Configuración global</span>
+          </button>
+        </div>
+      </aside>
+
+      <main class="content-area view active" id="view-dashboard">
+        <header class="content-header">
+          <h1 id="current-category-title">Todos</h1>
+          <button id="btn-refresh-scripts" class="icon-btn" title="Recargar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+          </button>
+        </header>
+
+        <div class="list-section">
+          <div class="section-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            DESTACADOS
+          </div>
+          <div id="script-grid" class="scripts-list">
+            <!-- Scripts render here -->
+          </div>
+        </div>
+
+        <div class="terminal-panel" id="view-terminal">
+          <div class="terminal-header">
+            <div class="term-title">
+              <span class="term-prompt">_></span> Terminal de Sistema
+            </div>
+            <div class="term-actions">
+              <button class="term-btn">Copiar Logs</button>
+              <button id="btn-clear-terminal" class="term-btn">Limpiar Log</button>
+            </div>
+          </div>
+          <pre id="terminal-output" class="terminal-output"></pre>
+        </div>
+      </main>
+
+      <section class="view" id="view-ojo" style="display:none;"></section>
+      <section class="view" id="view-autopilot" style="display:none;"></section>
+    </div>
+
+    <section id="spotlight-overlay" class="spotlight-overlay hidden">
+      <div class="spotlight-card glass-panel">
+        <input id="spotlight-input" type="text" placeholder="Buscar scripts..." />
+        <ul id="spotlight-results"></ul>
+      </div>
+    </section>
+
+    <div id="toast-root" class="toast-root"></div>
+
+    <script type="module" src="./renderer.js"></script>
+  </body>
+</html>
