@@ -53,3 +53,102 @@
 [2026-04-16T16:32:28.064Z] [INFO] [ipc] IPC handlers registered
 [2026-04-16T16:32:28.079Z] [INFO] [main-v2] Dashboard V2 initialized
 [2026-04-16T16:33:48.925Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-16T16:49:45.640Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T16:49:45.657Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T16:50:33.144Z] [ERROR] [ipc] IPC invoke failed on system:optimizeRam | mainWindow is not defined
+ReferenceError: mainWindow is not defined
+    at C:\Users\gerar\Desktop\proyecto nuevo dashboard\main\ipcHandlers.js:104:9
+    at RamOptimizer.optimize (C:\Users\gerar\Desktop\proyecto nuevo dashboard\src\main\integrations\ramOptimizer.js:96:7)
+    at C:\Users\gerar\Desktop\proyecto nuevo dashboard\main\ipcHandlers.js:102:33
+    at C:\Users\gerar\Desktop\proyecto nuevo dashboard\main\ipcHandlers.js:22:20
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:87444)
+    at WebContents.emit (node:events:524:28)
+[2026-04-16T16:50:36.248Z] [ERROR] [ipc] IPC invoke failed on system:optimizeRam | mainWindow is not defined
+ReferenceError: mainWindow is not defined
+    at C:\Users\gerar\Desktop\proyecto nuevo dashboard\main\ipcHandlers.js:104:9
+    at RamOptimizer.optimize (C:\Users\gerar\Desktop\proyecto nuevo dashboard\src\main\integrations\ramOptimizer.js:96:7)
+    at C:\Users\gerar\Desktop\proyecto nuevo dashboard\main\ipcHandlers.js:102:33
+    at C:\Users\gerar\Desktop\proyecto nuevo dashboard\main\ipcHandlers.js:22:20
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:87444)
+    at WebContents.emit (node:events:524:28)
+[2026-04-16T16:50:42.314Z] [ERROR] [ipc] IPC invoke failed on system:optimizeRam | mainWindow is not defined
+ReferenceError: mainWindow is not defined
+    at C:\Users\gerar\Desktop\proyecto nuevo dashboard\main\ipcHandlers.js:104:9
+    at RamOptimizer.optimize (C:\Users\gerar\Desktop\proyecto nuevo dashboard\src\main\integrations\ramOptimizer.js:96:7)
+    at C:\Users\gerar\Desktop\proyecto nuevo dashboard\main\ipcHandlers.js:102:33
+    at C:\Users\gerar\Desktop\proyecto nuevo dashboard\main\ipcHandlers.js:22:20
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:87444)
+    at WebContents.emit (node:events:524:28)
+[2026-04-16T16:50:42.645Z] [ERROR] [ipc] IPC invoke failed on system:optimizeRam | mainWindow is not defined
+ReferenceError: mainWindow is not defined
+    at C:\Users\gerar\Desktop\proyecto nuevo dashboard\main\ipcHandlers.js:104:9
+    at RamOptimizer.optimize (C:\Users\gerar\Desktop\proyecto nuevo dashboard\src\main\integrations\ramOptimizer.js:96:7)
+    at C:\Users\gerar\Desktop\proyecto nuevo dashboard\main\ipcHandlers.js:102:33
+    at C:\Users\gerar\Desktop\proyecto nuevo dashboard\main\ipcHandlers.js:22:20
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:87444)
+    at WebContents.emit (node:events:524:28)
+[2026-04-16T16:50:42.876Z] [ERROR] [ipc] IPC invoke failed on system:optimizeRam | mainWindow is not defined
+ReferenceError: mainWindow is not defined
+    at C:\Users\gerar\Desktop\proyecto nuevo dashboard\main\ipcHandlers.js:104:9
+    at RamOptimizer.optimize (C:\Users\gerar\Desktop\proyecto nuevo dashboard\src\main\integrations\ramOptimizer.js:96:7)
+    at C:\Users\gerar\Desktop\proyecto nuevo dashboard\main\ipcHandlers.js:102:33
+    at C:\Users\gerar\Desktop\proyecto nuevo dashboard\main\ipcHandlers.js:22:20
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:87444)
+    at WebContents.emit (node:events:524:28)
+[2026-04-16T16:51:19.925Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T16:51:19.942Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T16:52:47.393Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-16T16:53:39.759Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T16:53:39.794Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T16:53:57.572Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T16:53:57.589Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T16:55:09.009Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-16T17:04:53.668Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:04:53.687Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:07:11.303Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:07:11.326Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:10:16.955Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:10:17.016Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:11:05.306Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:11:05.329Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:11:40.752Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-16T17:11:44.857Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:11:44.884Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:12:45.955Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:12:45.972Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:15:17.247Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:15:17.270Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:15:39.094Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-16T17:15:43.084Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:15:43.102Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:15:55.094Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-16T17:17:54.519Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:17:54.534Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:18:47.410Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-16T17:18:50.243Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:18:50.265Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:19:01.028Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-16T17:26:55.526Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:26:55.551Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:27:15.178Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-16T17:31:07.958Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:31:07.979Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:32:48.153Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-16T17:33:58.322Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:33:58.342Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:34:11.936Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-16T17:34:26.584Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:34:26.636Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:37:33.279Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:37:33.295Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:37:59.039Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-16T17:38:02.418Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:38:02.441Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:38:22.132Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-16T17:41:49.883Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:41:49.905Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:43:59.764Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:43:59.780Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-16T17:44:16.551Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-16T17:47:17.800Z] [INFO] [ipc] IPC handlers registered
+[2026-04-16T17:47:17.814Z] [INFO] [main-v2] Dashboard V2 initialized

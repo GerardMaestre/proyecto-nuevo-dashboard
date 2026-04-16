@@ -10,6 +10,8 @@ const { TaskQueue } = require('./autopilot/queue');
 const { createLogger } = require('./utils/logger');
 const { ProcessManager } = require('./utils/processManager');
 const { elevateWithUac } = require('./utils/uac');
+const ramOptimizer = require('../src/main/integrations/ramOptimizer');
+const fileManager = require('../src/main/integrations/fileManager');
 
 const logger = createLogger('ipc');
 
@@ -96,6 +98,29 @@ function registerIpcHandlers({ getMainWindow, onRequestQuit }) {
   registerInvokeHandler('scripts:list', () => processManager.listScripts());
   registerInvokeHandler('scripts:run', (payload) => processManager.runScript(payload || {}));
   registerInvokeHandler('scripts:stop', (payload) => processManager.stopProcess(payload?.processId));
+    // Nativas V3
+    registerInvokeHandler('system:optimizeRam', async () => {
+      return await ramOptimizer.optimize((text) => {
+        // Usar sendToRenderer que ya tiene la lógica de validación de getMainWindow()
+        sendToRenderer('terminal:data', {
+          type: 'stdout',
+          text: text
+        });
+      });
+    });
+
+    registerInvokeHandler('system:cleanJunk', async () => {
+      return await fileManager.cleanJunk((progressData) => {
+        sendToRenderer('system:progress', progressData);
+      });
+    });
+
+    registerInvokeHandler('system:findDuplicates', async () => {
+      return await fileManager.findDuplicates((progressData) => {
+        // Aprovechamos el mismo sistema de progreso visual
+        sendToRenderer('system:progress', progressData);
+      });
+    });
 
   registerInvokeHandler('telemetry:get-snapshot', () => telemetryManager.getSnapshot());
   registerInvokeHandler('telemetry:start-stream', () => telemetryManager.start());
@@ -178,6 +203,9 @@ function registerIpcHandlers({ getMainWindow, onRequestQuit }) {
       'scripts:list',
       'scripts:run',
       'scripts:stop',
+      'system:optimizeRam',
+      'system:cleanJunk',
+      'system:findDuplicates',
       'telemetry:get-snapshot',
       'telemetry:start-stream',
       'telemetry:stop-stream',

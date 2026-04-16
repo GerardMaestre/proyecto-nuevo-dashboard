@@ -18,6 +18,8 @@ const CHANNELS = Object.freeze({
     scriptsList: 'scripts:list',
     scriptsRun: 'scripts:run',
     scriptsStop: 'scripts:stop',
+    systemOptimizeRam: 'system:optimizeRam',
+    systemCleanJunk: 'system:cleanJunk',
     telemetryStart: 'telemetry:start-stream',
     telemetryStop: 'telemetry:stop-stream',
     telemetrySnapshot: 'telemetry:get-snapshot',
@@ -38,6 +40,7 @@ const CHANNELS = Object.freeze({
   },
   receive: {
     terminalData: 'terminal:data',
+    systemProgress: 'system:progress',
     telemetryUpdate: 'telemetry:update',
     networkUpdate: 'network:update',
     networkThreat: 'network:threat',
@@ -119,6 +122,17 @@ const api = Object.freeze({
       ipcRenderer.send(CHANNELS.send.close);
     }
   }),
+  system: Object.freeze({
+    optimizeRam() {
+      return ipcRenderer.invoke(CHANNELS.invoke.systemOptimizeRam);
+    },
+    cleanJunk() {
+      return ipcRenderer.invoke(CHANNELS.invoke.systemCleanJunk);
+    },
+    findDuplicates() {
+      return ipcRenderer.invoke('system:findDuplicates');
+    }
+  }),
   scripts: Object.freeze({
     list() {
       return ipcRenderer.invoke(CHANNELS.invoke.scriptsList);
@@ -175,6 +189,9 @@ const api = Object.freeze({
     }
   }),
   events: Object.freeze({
+    onSystemProgress(handler) {
+      return subscribe(CHANNELS.receive.systemProgress, handler);
+    },
     onTerminalData(handler) {
       return subscribe(CHANNELS.receive.terminalData, handler);
     },
