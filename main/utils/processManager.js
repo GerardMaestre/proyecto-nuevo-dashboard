@@ -158,6 +158,24 @@ class ProcessManager extends EventEmitter {
         const scriptId = toScriptId(relativePath);
         const fileName = path.basename(file);
 
+        // Parsing de Metadatos
+        let desc = '';
+        let args = '';
+        try {
+          // Leemos solo primeros KB para no sobrecargar
+          const content = fs.readFileSync(file, 'utf8');
+          const lines = content.split(/\r?\n/).slice(0, 30);
+          for (const line of lines) {
+            const mDesc = line.match(/^[#:\s]+DESC:\s*(.+)$/i);
+            if (mDesc) desc = mDesc[1].trim();
+
+            const mArgs = line.match(/^[#:\s]+ARGS:\s*(.+)$/i);
+            if (mArgs) args = mArgs[1].trim();
+          }
+        } catch (e) {
+          // Ignorar si no se puede leer
+        }
+
         scripts.push({
           id: scriptId,
           name: fileName,
@@ -166,7 +184,11 @@ class ProcessManager extends EventEmitter {
           path: file,
           extension,
           category: this.categoryFromRelativePath(relativePath),
-          requiresAdmin: requiresAdmin(relativePath)
+          requiresAdmin: requiresAdmin(relativePath),
+          metadata: {
+            desc: desc || `Script de la categoria ${this.categoryFromRelativePath(relativePath)}. Modifica o interactua con tu sistema.`,
+            args: args || ((requiresAdmin(relativePath)) ? 'Ninguno (Solicitara permisos de Administrador)' : 'Ninguno')
+          }
         });
       }
 

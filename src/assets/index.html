@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self'; font-src 'self'; script-src 'self';"
+    />
+    <title>HORUS Dashboard V2</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar drag-region">
+        <div class="window-controls no-drag">
+          <button class="win-btn win-close" id="btn-close" title="Cerrar" aria-label="Cerrar"></button>
+          <button class="win-btn win-minimize" id="btn-minimize" title="Minimizar" aria-label="Minimizar"></button>
+          <button class="win-btn win-maximize" id="btn-maximize" title="Maximizar" aria-label="Maximizar"></button>
+        </div>
+
+        <div class="brand no-drag">
+          <span class="brand-dot"></span>
+          <h2>HORUS</h2>
+        </div>
+
+        <div class="search-container no-drag">
+          <span class="search-icon">Q</span>
+          <input id="script-filter-input" type="text" placeholder="Buscar (Ctrl+F)" />
+        </div>
+
+        <div class="nav-sections no-drag">
+          <nav class="nav-list" id="category-list">
+            <button class="nav-item active" data-category="all">
+              <span class="nav-icon blue-list">L</span>
+              <span class="nav-text">Todos</span>
+              <span class="badge badge-active" id="total-scripts">0</span>
+            </button>
+            <button class="nav-item" data-category="python">
+              <span class="nav-icon py-list">PY</span>
+              <span class="nav-text">Python</span>
+              <span class="badge" id="py-scripts">0</span>
+            </button>
+            <button class="nav-item" data-category="batch">
+              <span class="nav-icon bat-list">BAT</span>
+              <span class="nav-text">Batch</span>
+              <span class="badge" id="bat-scripts">0</span>
+            </button>
+            <button class="nav-item" data-category="activos">
+              <span class="nav-icon green-list">ON</span>
+              <span class="nav-text">Activos</span>
+              <span class="badge" id="active-scripts">0</span>
+            </button>
+          </nav>
+        </div>
+
+        <div class="sidebar-footer no-drag">
+          <button class="nav-item config-btn">
+            <span class="nav-icon">CFG</span>
+            <span class="nav-text">Configuracion global</span>
+          </button>
+        </div>
+      </aside>
+
+      <main class="content-area">
+        <header class="content-header">
+          <h1 id="current-category-title">Todos</h1>
+          <button id="btn-refresh-scripts" class="icon-btn" title="Recargar" aria-label="Recargar">R</button>
+        </header>
+
+        <div class="list-section">
+          <div class="section-title">DESTACADOS</div>
+          <div id="script-grid" class="scripts-list"></div>
+        </div>
+
+        <div class="terminal-panel" id="view-terminal">
+          <div class="terminal-header">
+            <div class="term-title"><span class="term-prompt">_&gt;</span> Terminal de Sistema</div>
+            <div class="term-actions">
+              <button id="btn-copy-terminal" class="term-btn">Copiar Logs</button>
+              <button id="btn-clear-terminal" class="term-btn">Limpiar Log</button>
+            </div>
+          </div>
+          <pre id="terminal-output" class="terminal-output"></pre>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="../renderer/index.js"></script>
+  </body>
+</html>
