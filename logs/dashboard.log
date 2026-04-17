@@ -201,3 +201,9 @@ ReferenceError: mainWindow is not defined
 [2026-04-17T08:37:53.208Z] [INFO] [ipc] IPC handlers registered
 [2026-04-17T08:37:53.225Z] [INFO] [main-v2] Dashboard V2 initialized
 [2026-04-17T08:38:20.936Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T09:22:23.818Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:22:23.843Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:22:55.029Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T09:24:05.622Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:24:05.645Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:25:11.544Z] [INFO] [ipc] IPC handlers cleaned up

@@ -2,6 +2,9 @@ import { byId, safeText } from '../lib/dom.js';
 
 const PYTHON_EXTENSIONS = new Set(['.py']);
 const BATCH_EXTENSIONS = new Set(['.bat', '.cmd', '.ps1']);
+const APPLE_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+const APPLE_SPRING = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
+const GLASS_MODAL_OVERLAY = 'radial-gradient(circle at 18% 6%, rgba(70, 110, 190, 0.3), rgba(8, 12, 20, 0.84) 52%, rgba(4, 7, 12, 0.94) 100%)';
 
 /**
  * Script list renderer and filtering controller.
@@ -326,18 +329,20 @@ export class ScriptList {
         const modal = document.createElement('div');
         Object.assign(modal.style, {
           position: 'fixed', inset: '0', zIndex: '999999',
-          background: 'rgba(10, 10, 15, 0.9)', backdropFilter: 'blur(15px)',
+          background: GLASS_MODAL_OVERLAY, backdropFilter: 'blur(20px) saturate(180%)',
           display: 'flex', justifyContent: 'center', alignItems: 'center',
-          fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif', userSelect: 'none',
-          transition: 'all 0.5s ease', opacity: '0', transform: 'scale(1.05)'
+          fontFamily: '"SF Pro Display", "Space Grotesk", "Segoe UI", sans-serif', userSelect: 'none',
+          transition: `opacity 0.46s ${APPLE_EASE}, transform 0.46s ${APPLE_EASE}`,
+          opacity: '0',
+          transform: 'scale(0.95)'
         });
         
         modal.innerHTML = `
-        <div style="background: #1a1b26; border: 1px solid #3b4261; border-radius: 20px; padding: 50px; width: 650px; max-width: 90vw; box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.9); position: relative; overflow: hidden; box-sizing: border-box; text-align: center; transition: all 0.5s ease;">
-          <div style="position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, #bb9af7, #7aa2f7, #9ece6a); box-shadow: 0 0 20px rgba(122, 162, 247, 0.8); transition: background 0.5s ease;" id="v3-gradient-top"></div>
+        <div style="background: linear-gradient(160deg, rgba(28,35,52,0.78), rgba(16,21,32,0.86)); border: 1px solid rgba(255,255,255,0.18); border-radius: 24px; padding: 50px; width: 650px; max-width: 90vw; box-shadow: 0 24px 70px rgba(3, 8, 20, 0.52), inset 0 1px 0 rgba(255,255,255,0.14); backdrop-filter: blur(20px) saturate(180%); position: relative; overflow: hidden; box-sizing: border-box; text-align: center; transition: transform 0.46s ${APPLE_EASE};">
+          <div style="position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, #bb9af7, #7aa2f7, #9ece6a); box-shadow: 0 0 20px rgba(122, 162, 247, 0.8); transition: background 0.46s ${APPLE_EASE};" id="v3-gradient-top"></div>
           
-          <div style="width: 100px; height: 100px; border-radius: 50%; border: 3px dashed #7aa2f7; margin: 0 auto 30px; display: flex; align-items: center; justify-content: center; transition: border-color 0.5s ease; animation: v3-spin-slow 10s linear infinite;" id="v3-ring">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 44px; height: 44px; stroke: #7aa2f7; transition: stroke 0.5s ease; animation: v3-pulse-glow 2s ease-in-out infinite alternate;" id="v3-icon">
+          <div style="width: 100px; height: 100px; border-radius: 50%; border: 3px dashed #7aa2f7; margin: 0 auto 30px; display: flex; align-items: center; justify-content: center; transition: border-color 0.46s ${APPLE_EASE}; animation: v3-spin-slow 10s linear infinite;" id="v3-ring">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 44px; height: 44px; stroke: #7aa2f7; transition: stroke 0.46s ${APPLE_EASE}; animation: v3-pulse-glow 2s ${APPLE_EASE} infinite alternate;" id="v3-icon">
               <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
             </svg>
           </div>
@@ -347,18 +352,18 @@ export class ScriptList {
           <div style="display: flex; justify-content: space-between; margin: 0 0 35px 0; background: rgba(0,0,0,0.5); padding: 30px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 0 20px rgba(0,0,0,0.5);">
             <div style="width: 50%; border-right: 1px solid rgba(255,255,255,0.1);">
               <div style="color: #a9b1d6; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-weight: 600;">Archivos Borrados</div>
-              <div id="v3-files-count" style="color: white; font-size: 54px; font-weight: 900; font-family: Consolas, monospace; text-shadow: 0 0 15px rgba(255,255,255,0.3); transition: color 0.3s;">0</div>
+              <div id="v3-files-count" style="color: white; font-size: 54px; font-weight: 900; font-family: Consolas, monospace; text-shadow: 0 0 15px rgba(255,255,255,0.3); transition: color 0.36s ${APPLE_EASE};">0</div>
             </div>
             <div style="width: 50%;">
               <div style="color: #a9b1d6; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-weight: 600;">Gigas Liberados</div>
-              <div id="v3-mb-freed" style="color: #9ece6a; font-size: 54px; font-weight: 900; font-family: Consolas, monospace; text-shadow: 0 0 15px rgba(158,206,106,0.4); transition: color 0.3s;">0.00</div>
+              <div id="v3-mb-freed" style="color: #9ece6a; font-size: 54px; font-weight: 900; font-family: Consolas, monospace; text-shadow: 0 0 15px rgba(158,206,106,0.4); transition: color 0.36s ${APPLE_EASE};">0.00</div>
             </div>
           </div>
           
-          <div id="v3-current-file" style="color: #7dcfff; font-size: 14px; font-family: Consolas, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 25px; text-align: left; background: rgba(0,0,0,0.4); padding: 15px 20px; border-radius: 10px; border-left: 4px solid #7aa2f7; transition: border-color 0.3s, color 0.3s;">Preparando Protocolo de Limpieza...</div>
+          <div id="v3-current-file" style="color: #7dcfff; font-size: 14px; font-family: Consolas, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 25px; text-align: left; background: rgba(0,0,0,0.4); padding: 15px 20px; border-radius: 10px; border-left: 4px solid #7aa2f7; transition: border-color 0.36s ${APPLE_EASE}, color 0.36s ${APPLE_EASE};">Preparando Protocolo de Limpieza...</div>
           
           <div style="height: 12px; background: rgba(0,0,0,0.6); border-radius: 6px; overflow: hidden; position: relative;">
-            <div id="v3-progress-bar" style="width: 2%; height: 100%; background: linear-gradient(90deg, #7aa2f7, #9ece6a); box-shadow: 0 0 20px rgba(122, 162, 247, 0.9); transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
+            <div id="v3-progress-bar" style="width: 2%; height: 100%; background: linear-gradient(90deg, #7aa2f7, #9ece6a); box-shadow: 0 0 20px rgba(122, 162, 247, 0.9); transition: width 0.4s ${APPLE_SPRING};"></div>
           </div>
         </div>
         <style>
@@ -482,7 +487,7 @@ export class ScriptList {
 
         setTimeout(() => {
           modal.style.opacity = '0';
-          modal.style.transform = 'scale(1.05)';
+          modal.style.transform = 'scale(0.97)';
           setTimeout(() => {
             if (modal.parentNode) modal.remove();
             if (cardActions) cardActions.style.display = oldActionsStyle;
@@ -528,19 +533,19 @@ export class ScriptList {
           position: 'fixed',
           inset: '0',
           zIndex: '999999',
-          background: 'radial-gradient(circle at 12% 10%, rgba(41, 58, 97, 0.52), rgba(8, 11, 18, 0.9) 52%, rgba(5, 7, 12, 0.95) 100%)',
-          backdropFilter: 'blur(12px)',
+          background: GLASS_MODAL_OVERLAY,
+          backdropFilter: 'blur(20px) saturate(180%)',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-          transition: 'opacity 0.35s ease, transform 0.35s ease',
+          fontFamily: '"SF Pro Display", "Space Grotesk", "Segoe UI", sans-serif',
+          transition: `opacity 0.42s ${APPLE_EASE}, transform 0.42s ${APPLE_EASE}`,
           opacity: '0',
-          transform: 'scale(1.02)'
+          transform: 'scale(0.95)'
         });
 
         modal.innerHTML = `
-          <div style="background:linear-gradient(160deg, rgba(26,31,45,0.98), rgba(12,16,27,0.97));border:1px solid rgba(122,162,247,0.25);border-radius:22px;padding:30px;width:700px;max-width:92vw;box-shadow:0 30px 75px rgba(0,0,0,.65);position:relative;overflow:hidden;">
+          <div style="background:linear-gradient(160deg, rgba(28,35,52,0.78), rgba(16,21,32,0.86));border:1px solid rgba(255,255,255,0.18);border-radius:24px;padding:30px;width:700px;max-width:92vw;box-shadow:0 24px 70px rgba(3,8,20,.52), inset 0 1px 0 rgba(255,255,255,0.14);backdrop-filter:blur(20px) saturate(180%);position:relative;overflow:hidden;">
             <div id="portscan-top" style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#7dcfff,#7aa2f7,#9ece6a);box-shadow:0 0 18px rgba(122,162,247,.75);"></div>
 
             <div style="display:flex;gap:26px;align-items:center;flex-wrap:wrap;">
@@ -574,7 +579,7 @@ export class ScriptList {
             </div>
 
             <div style="margin-top:15px;height:10px;background:rgba(0,0,0,0.58);border-radius:999px;overflow:hidden;">
-              <div id="portscan-progress" style="height:100%;width:4%;background:linear-gradient(90deg,#7dcfff,#7aa2f7);box-shadow:0 0 15px rgba(122,162,247,0.55);transition:width .28s ease;"></div>
+              <div id="portscan-progress" style="height:100%;width:4%;background:linear-gradient(90deg,#7dcfff,#7aa2f7);box-shadow:0 0 15px rgba(122,162,247,0.55);transition:width .32s ${APPLE_EASE};"></div>
             </div>
 
             <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;color:#8e95b9;font-size:12px;letter-spacing:.8px;text-transform:uppercase;">
@@ -1260,7 +1265,7 @@ export class ScriptList {
 
         if (modal && modal.parentNode) {
           modal.style.opacity = '0';
-          modal.style.transform = 'scale(1.02)';
+          modal.style.transform = 'scale(0.97)';
           await new Promise((resolve) => setTimeout(resolve, 320));
           if (modal.parentNode) {
             modal.remove();
@@ -1292,17 +1297,19 @@ export class ScriptList {
         modal = document.createElement('div');
         Object.assign(modal.style, {
           position: 'fixed', inset: '0', zIndex: '999999',
-          background: 'rgba(8, 12, 20, 0.88)', backdropFilter: 'blur(14px)',
+          background: GLASS_MODAL_OVERLAY, backdropFilter: 'blur(20px) saturate(180%)',
           display: 'flex', justifyContent: 'center', alignItems: 'center',
-          fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-          transition: 'all 0.35s ease', opacity: '0'
+          fontFamily: '"SF Pro Display", "Space Grotesk", "Segoe UI", sans-serif',
+          transition: `opacity 0.42s ${APPLE_EASE}, transform 0.42s ${APPLE_EASE}`,
+          opacity: '0',
+          transform: 'scale(0.95)'
         });
 
         const accentColor = shouldStart ? '#7aa2f7' : '#f7768e';
         const doneColor = '#9ece6a';
 
         modal.innerHTML = `
-          <div style="background:#1a1b26;border:1px solid #3b4261;border-radius:18px;padding:36px;width:620px;max-width:90vw;box-shadow:0 24px 60px rgba(0,0,0,.65);position:relative;overflow:hidden;">
+          <div style="background:linear-gradient(160deg, rgba(28,35,52,0.78), rgba(16,21,32,0.86));border:1px solid rgba(255,255,255,0.18);border-radius:24px;padding:36px;width:620px;max-width:90vw;box-shadow:0 24px 70px rgba(3,8,20,.52), inset 0 1px 0 rgba(255,255,255,0.14);backdrop-filter:blur(20px) saturate(180%);position:relative;overflow:hidden;">
             <div id="immich-top-bar" style="position:absolute;top:0;left:0;right:0;height:4px;background:${accentColor};box-shadow:0 0 18px ${accentColor};"></div>
             <h2 id="immich-title" style="margin:0 0 18px 0;color:${accentColor};font-size:30px;letter-spacing:2px;text-transform:uppercase;font-weight:800;">
               ${shouldStart ? 'Arranque Immich' : 'Apagado Immich'}
@@ -1317,7 +1324,7 @@ export class ScriptList {
             </div>
 
             <div style="height:12px;background:rgba(0,0,0,.55);border-radius:999px;overflow:hidden;">
-              <div id="immich-progress" style="height:100%;width:8%;background:linear-gradient(90deg, ${accentColor}, #7dcfff);box-shadow:0 0 16px ${accentColor};transition:width .35s ease;"></div>
+              <div id="immich-progress" style="height:100%;width:8%;background:linear-gradient(90deg, ${accentColor}, #7dcfff);box-shadow:0 0 16px ${accentColor};transition:width .35s ${APPLE_EASE};"></div>
             </div>
 
             <div style="margin-top:12px;color:#a9b1d6;font-size:12px;letter-spacing:.8px;text-transform:uppercase;">Docker + WSL Orchestrator</div>
@@ -1327,6 +1334,7 @@ export class ScriptList {
         document.body.appendChild(modal);
         requestAnimationFrame(() => {
           modal.style.opacity = '1';
+          modal.style.transform = 'scale(1)';
         });
 
         const stageEl = modal.querySelector('#immich-stage');
@@ -1437,6 +1445,7 @@ export class ScriptList {
 
         if (modal && modal.parentNode) {
           modal.style.opacity = '0';
+          modal.style.transform = 'scale(0.97)';
           await new Promise((resolve) => setTimeout(resolve, 320));
           if (modal.parentNode) modal.remove();
         }

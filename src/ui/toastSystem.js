@@ -28,12 +28,16 @@ export class ToastSystem {
 
     this.root.appendChild(toast);
 
+    requestAnimationFrame(() => {
+      toast.classList.add('show');
+    });
+
     const remove = () => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateX(12px)';
+      toast.classList.add('is-leaving');
+      toast.classList.remove('show');
       setTimeout(() => {
         toast.remove();
-      }, 180);
+      }, 220);
     };
 
     setTimeout(remove, timeout);

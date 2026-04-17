@@ -17,7 +17,7 @@ export class TerminalSystem {
     const timestamp = new Date().toLocaleTimeString();
     const line = document.createElement('div');
     line.className = `terminal-line ${type}`;
-    line.innerHTML = `<span>[${safeText(timestamp)}]</span> ${safeText(text)}`;
+    line.innerHTML = `<span class="term-time">[${safeText(timestamp)}]</span>${safeText(text)}`;
 
     this.outputElement.appendChild(line);
 

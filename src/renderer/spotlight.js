@@ -13,6 +13,7 @@ export class Spotlight {
 
     this.items = [];
     this.activeIndex = 0;
+    this.closeTimer = null;
 
     this.bindEvents();
   }
@@ -83,7 +84,16 @@ export class Spotlight {
       return;
     }
 
+    if (this.closeTimer) {
+      clearTimeout(this.closeTimer);
+      this.closeTimer = null;
+    }
+
     this.overlay.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      this.overlay?.classList.add('visible');
+    });
+
     this.input.value = '';
     this.input.focus();
     this.activeIndex = 0;
@@ -91,7 +101,15 @@ export class Spotlight {
   }
 
   close() {
-    this.overlay?.classList.add('hidden');
+    if (!this.overlay) {
+      return;
+    }
+
+    this.overlay.classList.remove('visible');
+    this.closeTimer = setTimeout(() => {
+      this.overlay?.classList.add('hidden');
+      this.closeTimer = null;
+    }, 320);
   }
 
   getFilteredScripts() {
