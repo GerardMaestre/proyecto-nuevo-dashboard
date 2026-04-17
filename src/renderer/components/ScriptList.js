@@ -296,24 +296,248 @@ export class ScriptList {
         return;
       }
 
-      const response = await this.api.scripts.run({
-        scriptId: script.id,
-        args: args,
-        scriptName: script.name,
-        elevated: Boolean(script.requiresAdmin)
-      });
+      // Universal Glassmorphism Feedback for Standard Scripts
+      const card = this.gridElement.querySelector(`[data-script-id="${script.id}"]`);
+      if (card) {
+        return this.startVisualStandardScript(card, script, args).catch(err => {
+          this.onError(err.message || 'No se pudo ejecutar el script');
+        });
+      } else {
+        // Fallback preventivo
+        const response = await this.api.scripts.run({
+          scriptId: script.id,
+          args: args,
+          scriptName: script.name,
+          elevated: Boolean(script.requiresAdmin)
+        });
 
-    if (response?.processId) {
-      this.markProcessStarted(response.processId);
-      this.onProcessStarted(response.processId);
-      this.render();
-      return;
+        if (response?.processId) {
+          this.markProcessStarted(response.processId);
+          this.onProcessStarted(response.processId);
+          this.render();
+          return;
+        }
+
+        if (response?.error) {
+          throw new Error(response.error);
+        }
+      }
     }
 
-    if (response?.error) {
-      throw new Error(response.error);
+    /**
+     * Inyecta el CSS universal para los scripts estándar si no existe.
+     */
+    injectAnimationsCSS() {
+      if (document.getElementById('v3-standard-script-css')) return;
+      const style = document.createElement('style');
+      style.id = 'v3-standard-script-css';
+      style.textContent = `
+        .script-card {
+          transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.4s cubic-bezier(0.32, 0.72, 0, 1), border-color 0.4s cubic-bezier(0.32, 0.72, 0, 1) !important;
+          position: relative;
+          overflow: hidden;
+        }
+        .script-card.is-processing {
+          transform: scale(0.98);
+        }
+        .script-card.is-success-state {
+          border-color: rgba(158, 206, 106, 0.6) !important;
+          box-shadow: 0 0 20px rgba(158, 206, 106, 0.2) !important;
+        }
+        .script-card.is-error-state {
+          border-color: rgba(247, 118, 142, 0.6) !important;
+          box-shadow: 0 0 20px rgba(247, 118, 142, 0.2) !important;
+        }
+        .v3-script-overlay {
+          position: absolute;
+          inset: 0;
+          z-index: 10;
+          background: rgba(10, 14, 23, 0.85);
+          backdrop-filter: blur(8px) saturate(150%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+          border-radius: inherit;
+        }
+        .v3-script-overlay.show {
+          opacity: 1;
+        }
+        .v3-script-overlay.success {
+          background: rgba(158, 206, 106, 0.15);
+        }
+        .v3-script-overlay.error {
+          background: rgba(247, 118, 142, 0.15);
+        }
+        .v3-spinner {
+          width: 40px;
+          height: 40px;
+          border: 3px solid rgba(122, 162, 247, 0.2);
+          border-top-color: #7aa2f7;
+          border-radius: 50%;
+          animation: v3-spin 1s linear infinite;
+          margin-bottom: 12px;
+        }
+        .v3-icon-wrapper {
+          display: none;
+          width: 44px;
+          height: 44px;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 12px;
+          border-radius: 50%;
+        }
+        .success .v3-icon-wrapper {
+          display: flex;
+          background: rgba(158, 206, 106, 0.2);
+          color: #9ece6a;
+          box-shadow: 0 0 15px rgba(158, 206, 106, 0.4);
+        }
+        .error .v3-icon-wrapper {
+          display: flex;
+          background: rgba(247, 118, 142, 0.2);
+          color: #f7768e;
+          box-shadow: 0 0 15px rgba(247, 118, 142, 0.4);
+        }
+        .success .v3-spinner, .error .v3-spinner {
+          display: none !important;
+        }
+        .v3-status-text {
+          font-family: Consolas, monospace;
+          font-size: 13px;
+          color: #c0caf5;
+          text-align: center;
+          max-width: 90%;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          padding: 4px 12px;
+          background: rgba(0, 0, 0, 0.4);
+          border-radius: 6px;
+        }
+        .success .v3-status-text { color: #9ece6a; }
+        .error .v3-status-text { color: #f7768e; }
+        @keyframes v3-spin { to { transform: rotate(360deg); } }
+      `;
+      document.head.appendChild(style);
     }
-  }
+
+    /**
+     * Inicia el script estándar con overlay Glassmorphism universal.
+     * @param {HTMLElement} card
+     * @param {any} script
+     * @param {string[]} args
+     */
+    async startVisualStandardScript(card, script, args) {
+      this.injectAnimationsCSS();
+
+      card.classList.add('is-processing');
+
+      const overlay = document.createElement('div');
+      overlay.className = 'v3-script-overlay';
+      overlay.innerHTML = `
+        <div class="v3-spinner"></div>
+        <div class="v3-icon-wrapper">
+          <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" class="v3-status-icon"></svg>
+        </div>
+        <div class="v3-status-text process-status-text">Iniciando entorno...</div>
+      `;
+      card.appendChild(overlay);
+
+      // Trigger reflow
+      overlay.getBoundingClientRect();
+      overlay.classList.add('show');
+
+      const statusText = overlay.querySelector('.process-status-text');
+      const icon = overlay.querySelector('.v3-status-icon');
+
+      let terminalUnsub = null;
+      let finalExitPayload = null;
+      let targetProcessId = null;
+
+      try {
+        const response = await this.api.scripts.run({
+          scriptId: script.id,
+          args: args,
+          scriptName: script.name,
+          elevated: Boolean(script.requiresAdmin)
+        });
+
+        if (response?.error) {
+          throw new Error(response.error);
+        }
+
+        const processId = response?.processId;
+        if (!processId) {
+          throw new Error("No se obtuvo un ID de proceso.");
+        }
+        
+        targetProcessId = processId;
+        this.markProcessStarted(processId);
+        this.onProcessStarted(processId);
+
+        finalExitPayload = await new Promise((resolve) => {
+          let hasSucceeded = false;
+          // Timeout de 5 mins
+          const timeoutId = setTimeout(() => {
+            if (!hasSucceeded) resolve({ type: 'exit', processId, code: -1, error: 'Timeout de seguridad (5 min)' });
+          }, 300000);
+
+          terminalUnsub = this.api.events.onTerminalData((payload) => {
+            if (!payload || payload.processId !== processId) return;
+
+            if (payload.type === 'stdout' && payload.text) {
+              const lines = payload.text.trim().split('\\n').filter(l => l.trim().length > 0);
+              if (lines.length > 0) {
+                const lastLine = lines[lines.length - 1].trim();
+                statusText.textContent = lastLine.length > 40 ? lastLine.substring(0, 40) + '...' : lastLine;
+              }
+            } else if (payload.type === 'stderr' || payload.type === 'error') {
+              const errText = payload.text || payload.message || 'Error en tiempo de ejecución';
+              statusText.textContent = errText.length > 40 ? errText.substring(0, 40) + '...' : errText;
+            } else if (payload.type === 'exit') {
+              hasSucceeded = true;
+              clearTimeout(timeoutId);
+              resolve(payload);
+            }
+          });
+        });
+
+      } catch (err) {
+        finalExitPayload = { error: err.message || "Error inesperado", code: -1 };
+      }
+
+      // Cleanup listener
+      if (terminalUnsub) terminalUnsub();
+      if (targetProcessId) this.markProcessEnded(targetProcessId);
+
+      // Render Final Stage
+      if (finalExitPayload?.code === 0 && !finalExitPayload?.error) {
+        overlay.classList.add('success');
+        card.classList.add('is-success-state');
+        statusText.textContent = "¡Operación completada!";
+        icon.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+      } else {
+        overlay.classList.add('error');
+        card.classList.add('is-error-state');
+        const finalErr = finalExitPayload?.error || "Operación fallida";
+        statusText.textContent = finalErr.length > 35 ? finalErr.substring(0, 35) + '...' : finalErr;
+        icon.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>';
+      }
+
+      // Wait 3s then restore
+      await new Promise(r => setTimeout(r, 3000));
+      
+      overlay.classList.remove('show');
+      card.classList.remove('is-processing', 'is-success-state', 'is-error-state');
+      
+      setTimeout(() => {
+        if (overlay.parentNode === card) card.removeChild(overlay);
+        this.render(); // force UI refresh
+      }, 400);
+    }
 
     /**
      * V3: Animación y métricas en vivo para limpieza en lugar de texto en terminal

@@ -207,3 +207,56 @@ ReferenceError: mainWindow is not defined
 [2026-04-17T09:24:05.622Z] [INFO] [ipc] IPC handlers registered
 [2026-04-17T09:24:05.645Z] [INFO] [main-v2] Dashboard V2 initialized
 [2026-04-17T09:25:11.544Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T09:30:56.039Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:30:56.059Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:33:15.849Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:33:15.872Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:33:48.283Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T09:35:13.342Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:35:13.370Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:36:14.783Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:36:14.812Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:36:25.905Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T09:36:45.364Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:36:45.396Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:37:55.358Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:37:55.379Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:39:14.078Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T09:39:24.228Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:39:24.258Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:39:34.447Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T09:40:35.324Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:40:35.347Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:40:50.939Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T09:42:04.107Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:42:04.128Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:42:16.827Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T09:43:41.420Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:43:41.443Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:47:26.551Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:47:26.576Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:47:42.048Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T09:48:29.395Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:48:29.417Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:48:56.010Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T09:54:01.474Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:54:01.494Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:54:34.451Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T09:59:31.134Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T09:59:31.156Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T09:59:52.043Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T10:04:51.598Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T10:04:51.624Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T10:05:02.984Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T10:08:41.946Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T10:08:41.978Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T10:08:49.186Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T10:14:25.514Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T10:14:25.540Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T10:14:44.061Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T10:15:02.684Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T10:15:02.705Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T10:15:22.026Z] [INFO] [ipc] IPC handlers cleaned up
+[2026-04-17T10:30:20.625Z] [INFO] [ipc] IPC handlers registered
+[2026-04-17T10:30:20.654Z] [INFO] [main-v2] Dashboard V2 initialized
+[2026-04-17T10:31:16.825Z] [INFO] [ipc] IPC handlers cleaned up
