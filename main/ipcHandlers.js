@@ -12,6 +12,8 @@ const { ProcessManager } = require('./utils/processManager');
 const { elevateWithUac } = require('./utils/uac');
 const ramOptimizer = require('../src/main/integrations/ramOptimizer');
 const fileManager = require('../src/main/integrations/fileManager');
+const dockerManager = require('../src/main/integrations/dockerManager');
+const portSecurityManager = require('../src/main/integrations/portSecurityManager');
 
 const logger = createLogger('ipc');
 
@@ -122,6 +124,30 @@ function registerIpcHandlers({ getMainWindow, onRequestQuit }) {
       });
     });
 
+    registerInvokeHandler('system:startImmich', async () => {
+      return await dockerManager.startImmich((progressData) => {
+        sendToRenderer('system:progress', progressData);
+      });
+    });
+
+    registerInvokeHandler('system:stopImmich', async () => {
+      return await dockerManager.stopImmich((progressData) => {
+        sendToRenderer('system:progress', progressData);
+      });
+    });
+
+    registerInvokeHandler('system:blockPort', (payload) => {
+      return portSecurityManager.blockPort(payload || {});
+    });
+
+    registerInvokeHandler('system:hardenSmb', () => {
+      return portSecurityManager.hardenSmb();
+    });
+
+    registerInvokeHandler('system:forcePublicNetwork', () => {
+      return portSecurityManager.forcePublicNetworkProfile();
+    });
+
   registerInvokeHandler('telemetry:get-snapshot', () => telemetryManager.getSnapshot());
   registerInvokeHandler('telemetry:start-stream', () => telemetryManager.start());
   registerInvokeHandler('telemetry:stop-stream', () => telemetryManager.stop());
@@ -206,6 +232,11 @@ function registerIpcHandlers({ getMainWindow, onRequestQuit }) {
       'system:optimizeRam',
       'system:cleanJunk',
       'system:findDuplicates',
+      'system:startImmich',
+      'system:stopImmich',
+      'system:blockPort',
+      'system:hardenSmb',
+      'system:forcePublicNetwork',
       'telemetry:get-snapshot',
       'telemetry:start-stream',
       'telemetry:stop-stream',

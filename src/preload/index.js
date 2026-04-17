@@ -20,6 +20,9 @@ const CHANNELS = Object.freeze({
     scriptsStop: 'scripts:stop',
     systemOptimizeRam: 'system:optimizeRam',
     systemCleanJunk: 'system:cleanJunk',
+    systemBlockPort: 'system:blockPort',
+    systemHardenSmb: 'system:hardenSmb',
+    systemForcePublicNetwork: 'system:forcePublicNetwork',
     telemetryStart: 'telemetry:start-stream',
     telemetryStop: 'telemetry:stop-stream',
     telemetrySnapshot: 'telemetry:get-snapshot',
@@ -70,6 +73,20 @@ function safeArgs(value) {
     .map((arg) => safeString(arg))
     .filter(Boolean)
     .slice(0, 16);
+}
+
+/**
+ * @param {any} value
+ * @returns {number}
+ */
+function safePort(value) {
+  const normalized = Number(value);
+
+  if (!Number.isInteger(normalized) || normalized < 1 || normalized > 65535) {
+    return 0;
+  }
+
+  return normalized;
 }
 
 /**
@@ -131,6 +148,23 @@ const api = Object.freeze({
     },
     findDuplicates() {
       return ipcRenderer.invoke('system:findDuplicates');
+    },
+    startImmich() {
+      return ipcRenderer.invoke('system:startImmich');
+    },
+    stopImmich() {
+      return ipcRenderer.invoke('system:stopImmich');
+    },
+    blockPort(port) {
+      return ipcRenderer.invoke(CHANNELS.invoke.systemBlockPort, {
+        port: safePort(port)
+      });
+    },
+    hardenSmb() {
+      return ipcRenderer.invoke(CHANNELS.invoke.systemHardenSmb);
+    },
+    forcePublicNetwork() {
+      return ipcRenderer.invoke(CHANNELS.invoke.systemForcePublicNetwork);
     }
   }),
   scripts: Object.freeze({

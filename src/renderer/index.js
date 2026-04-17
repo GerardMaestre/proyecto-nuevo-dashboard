@@ -84,3 +84,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.__horusRendererModuleLoaded = true;
+window.onerror = function(err) { alert(err) };

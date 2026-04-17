@@ -143,6 +143,20 @@ export class ScriptList {
   }
 
   /**
+   * Identifica el script de detector de puertos en la lista dinámica.
+   * @param {any} script
+   * @returns {boolean}
+   */
+  isPortScannerScript(script) {
+    const id = String(script?.id || '').toLowerCase();
+    const name = String(script?.name || '').toLowerCase();
+
+    return id === '03_privacidad_seguridad/revisor_puertos_abiertos.py'
+      || (name.includes('revisor') && name.includes('puerto'))
+      || (name.includes('puertos') && name.includes('abiertos'));
+  }
+
+  /**
    * Renders all visible scripts.
    */
   render() {
@@ -252,6 +266,30 @@ export class ScriptList {
       if (script.id === '04_Utilidades_Archivos/Duplicados.py' || script.name.toLowerCase().includes('duplicado')) {
         const card = this.gridElement.querySelector(`[data-script-id="${script.id}"]`);
         this.startVisualDuplicates(card);
+        return;
+      }
+
+      // Dashboard V3 (Native-First) - Override Detector de Puertos
+      if (this.isPortScannerScript(script)) {
+        const card = this.gridElement.querySelector(`[data-script-id="${script.id}"]`);
+        this.startVisualPortScanner(card, script, args).catch((error) => {
+          this.onError(error?.message || 'No se pudo ejecutar el detector de puertos');
+        });
+        return;
+      }
+
+      
+      // Dashboard V3 (Native-First) - Override Encender Servidor Immich
+      if (script.id === '06_Personalizacion/fotos.bat' || (script.name.toLowerCase().includes('encender') && script.name.toLowerCase().includes('fotos'))) {
+        const card = this.gridElement.querySelector(`[data-script-id="${script.id}"]`);
+        this.startVisualImmich(card, true);
+        return;
+      }
+
+      // Dashboard V3 (Native-First) - Override Apagar Servidor Immich
+      if (script.id === '06_Personalizacion/cerrar_fotos.bat' || (script.name.toLowerCase().includes('apagar') && script.name.toLowerCase().includes('fotos'))) {
+        const card = this.gridElement.querySelector(`[data-script-id="${script.id}"]`);
+        this.startVisualImmich(card, false);
         return;
       }
 
@@ -454,6 +492,958 @@ export class ScriptList {
       } catch (err) {
         console.error('Critical modal error', err);
         if (cardActions) cardActions.style.display = oldActionsStyle;
+      }
+    }
+
+    /**
+     * Mantiene compatibilidad con la ruta de ejecución de Duplicados.
+     * @param {HTMLElement} card
+     */
+    async startVisualDuplicates(card) {
+      return this.startVisualCleanup(card);
+    }
+
+    /**
+     * Flujo visual para el detector de puertos con animacion en tiempo real.
+     * @param {HTMLElement | null} card
+     * @param {any} script
+     * @param {string[]} args
+     */
+    async startVisualPortScanner(card, script, args = []) {
+      const cardActions = card?.querySelector('.card-actions') || null;
+      const oldActionsStyle = cardActions ? cardActions.style.display : 'flex';
+      if (cardActions) {
+        cardActions.style.display = 'none';
+      }
+
+      let modal = null;
+      let terminalUnsub = null;
+      let progressTimer = null;
+      let processId = '';
+      let isRunning = true;
+
+      try {
+        modal = document.createElement('div');
+        Object.assign(modal.style, {
+          position: 'fixed',
+          inset: '0',
+          zIndex: '999999',
+          background: 'radial-gradient(circle at 12% 10%, rgba(41, 58, 97, 0.52), rgba(8, 11, 18, 0.9) 52%, rgba(5, 7, 12, 0.95) 100%)',
+          backdropFilter: 'blur(12px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+          transition: 'opacity 0.35s ease, transform 0.35s ease',
+          opacity: '0',
+          transform: 'scale(1.02)'
+        });
+
+        modal.innerHTML = `
+          <div style="background:linear-gradient(160deg, rgba(26,31,45,0.98), rgba(12,16,27,0.97));border:1px solid rgba(122,162,247,0.25);border-radius:22px;padding:30px;width:700px;max-width:92vw;box-shadow:0 30px 75px rgba(0,0,0,.65);position:relative;overflow:hidden;">
+            <div id="portscan-top" style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#7dcfff,#7aa2f7,#9ece6a);box-shadow:0 0 18px rgba(122,162,247,.75);"></div>
+
+            <div style="display:flex;gap:26px;align-items:center;flex-wrap:wrap;">
+              <div style="position:relative;width:126px;height:126px;flex:0 0 auto;">
+                <div style="position:absolute;inset:0;border-radius:50%;border:1px solid rgba(125,207,255,0.35);"></div>
+                <div style="position:absolute;inset:13px;border-radius:50%;border:1px dashed rgba(125,207,255,0.42);animation:portscan-ring 6.5s linear infinite;"></div>
+                <div id="portscan-sweep" style="position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg, rgba(125,207,255,0.7), rgba(125,207,255,0.1), transparent 43%);animation:portscan-sweep 2.4s linear infinite;"></div>
+                <div style="position:absolute;inset:35px;border-radius:50%;background:rgba(7,10,18,0.95);border:1px solid rgba(125,207,255,0.35);display:flex;align-items:center;justify-content:center;color:#7dcfff;font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;">scan</div>
+              </div>
+
+              <div style="flex:1;min-width:250px;">
+                <h2 id="portscan-title" style="margin:0 0 10px 0;color:#7dcfff;font-size:31px;letter-spacing:1px;text-transform:uppercase;font-weight:900;text-shadow:0 0 16px rgba(125,207,255,0.25);">Detector de Puertos</h2>
+                <div id="portscan-stage" style="display:inline-block;padding:6px 12px;border-radius:999px;background:rgba(122,162,247,0.18);color:#7aa2f7;font-size:12px;letter-spacing:1px;font-weight:700;text-transform:uppercase;">Inicializando</div>
+                <div id="portscan-message" style="margin-top:12px;color:#c0caf5;background:rgba(0,0,0,0.33);border:1px solid rgba(255,255,255,0.08);border-radius:11px;padding:12px 14px;line-height:1.3;min-height:46px;">Preparando exploracion local de servicios...</div>
+              </div>
+            </div>
+
+            <div id="portscan-metrics" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:20px;">
+              <div style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;">
+                <div style="font-size:11px;color:#a9b1d6;text-transform:uppercase;letter-spacing:1.1px;">Puertos Revisados</div>
+                <div id="portscan-checked" style="margin-top:5px;color:#c0caf5;font-size:28px;font-weight:800;font-family:Consolas, monospace;">0</div>
+              </div>
+              <div style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;">
+                <div style="font-size:11px;color:#a9b1d6;text-transform:uppercase;letter-spacing:1.1px;">Puertos Abiertos</div>
+                <div id="portscan-open" style="margin-top:5px;color:#f7768e;font-size:28px;font-weight:800;font-family:Consolas, monospace;">0</div>
+              </div>
+              <div style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;">
+                <div style="font-size:11px;color:#a9b1d6;text-transform:uppercase;letter-spacing:1.1px;">Riesgo Actual</div>
+                <div id="portscan-risk" style="margin-top:5px;color:#7aa2f7;font-size:28px;font-weight:800;font-family:Consolas, monospace;">LOW</div>
+              </div>
+            </div>
+
+            <div style="margin-top:15px;height:10px;background:rgba(0,0,0,0.58);border-radius:999px;overflow:hidden;">
+              <div id="portscan-progress" style="height:100%;width:4%;background:linear-gradient(90deg,#7dcfff,#7aa2f7);box-shadow:0 0 15px rgba(122,162,247,0.55);transition:width .28s ease;"></div>
+            </div>
+
+            <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;color:#8e95b9;font-size:12px;letter-spacing:.8px;text-transform:uppercase;">
+              <span>Escaneo de puertos criticos locales</span>
+              <span id="portscan-elapsed">0.0s</span>
+            </div>
+
+            <div id="portscan-open-ports" style="margin-top:13px;display:flex;flex-wrap:wrap;gap:8px;min-height:30px;align-items:flex-start;color:#a9b1d6;font-size:13px;">Sin puertos peligrosos abiertos reportados.</div>
+
+            <div style="margin-top:16px;color:#8e95b9;font-size:11px;letter-spacing:1px;text-transform:uppercase;">Mitigacion segura desde HORUS</div>
+            <div id="portscan-actions" style="margin-top:8px;display:flex;flex-direction:column;gap:8px;max-height:190px;overflow:auto;padding-right:3px;"></div>
+
+            <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-auto" id="portscan-harden-smb" style="display:none;font-size:11px;">Blindaje SMB</button>
+              <button class="btn btn-auto" id="portscan-force-public" style="display:none;font-size:11px;">Forzar red publica</button>
+              <button class="btn btn-edit" id="portscan-close" style="font-size:11px;">Cerrar</button>
+            </div>
+          </div>
+
+          <style>
+            @keyframes portscan-sweep { to { transform: rotate(360deg); } }
+            @keyframes portscan-ring { to { transform: rotate(-360deg); } }
+            @media (max-width: 680px) {
+              #portscan-metrics { grid-template-columns: 1fr !important; }
+            }
+          </style>
+        `;
+
+        document.body.appendChild(modal);
+        requestAnimationFrame(() => {
+          modal.style.opacity = '1';
+          modal.style.transform = 'scale(1)';
+        });
+
+        const titleEl = modal.querySelector('#portscan-title');
+        const topBarEl = modal.querySelector('#portscan-top');
+        const stageEl = modal.querySelector('#portscan-stage');
+        const messageEl = modal.querySelector('#portscan-message');
+        const checkedEl = modal.querySelector('#portscan-checked');
+        const openEl = modal.querySelector('#portscan-open');
+        const riskEl = modal.querySelector('#portscan-risk');
+        const progressEl = modal.querySelector('#portscan-progress');
+        const elapsedEl = modal.querySelector('#portscan-elapsed');
+        const openPortsEl = modal.querySelector('#portscan-open-ports');
+        const actionsEl = modal.querySelector('#portscan-actions');
+        const closeButton = modal.querySelector('#portscan-close');
+        const forcePublicButton = modal.querySelector('#portscan-force-public');
+        const hardenSmbButton = modal.querySelector('#portscan-harden-smb');
+
+        const totalDangerPorts = 16;
+        const openPorts = new Set();
+        const findingsByPort = new Map();
+        const mitigationByPort = new Map();
+        const startedAt = Date.now();
+        let summaryOpenPorts = null;
+        let summaryData = null;
+        let virtualChecked = 0;
+        let targetChecked = 2;
+        let virtualProgress = 4;
+        let scanCompleted = false;
+        let isGlobalMitigationBusy = false;
+        let smbHardenStatus = 'idle';
+        let profileHardenStatus = 'idle';
+
+        const riskWeight = Object.freeze({
+          LOW: 1,
+          MEDIUM: 2,
+          HIGH: 3
+        });
+
+        const updateRiskStateByCount = (count) => {
+          let riskLabel = 'LOW';
+          let riskColor = '#7aa2f7';
+
+          if (count >= 3) {
+            riskLabel = 'HIGH';
+            riskColor = '#f7768e';
+          } else if (count > 0) {
+            riskLabel = 'MEDIUM';
+            riskColor = '#e0af68';
+          }
+
+          riskEl.textContent = riskLabel;
+          riskEl.style.color = riskColor;
+        };
+
+        const updateRiskStateFromFindings = () => {
+          if (!findingsByPort.size) {
+            updateRiskStateByCount(openPorts.size);
+            return;
+          }
+
+          const findings = Array.from(findingsByPort.values());
+          const hasPublicExposure = findings.some((item) => item.scope === 'PUBLIC');
+
+          if (!hasPublicExposure) {
+            riskEl.textContent = 'LOW';
+            riskEl.style.color = '#9ece6a';
+            return;
+          }
+
+          let maxScore = 1;
+          for (const finding of findings) {
+            maxScore = Math.max(maxScore, riskWeight[finding.risk] || 1);
+          }
+
+          if (maxScore >= 3) {
+            riskEl.textContent = 'HIGH';
+            riskEl.style.color = '#f7768e';
+            return;
+          }
+
+          riskEl.textContent = 'MEDIUM';
+          riskEl.style.color = '#e0af68';
+        };
+
+        const renderOpenPorts = () => {
+          const sortedPorts = Array.from(openPorts).sort((a, b) => a - b);
+
+          if (!sortedPorts.length) {
+            openPortsEl.textContent = 'Sin puertos peligrosos abiertos reportados.';
+            return;
+          }
+
+          const chips = sortedPorts.slice(0, 10)
+            .map((port) => {
+              const finding = findingsByPort.get(port);
+              if (!finding) {
+                return `<span style="padding:5px 10px;border-radius:999px;border:1px solid rgba(247,118,142,0.5);background:rgba(247,118,142,0.16);color:#f7768e;font-weight:700;font-family:Consolas, monospace;">:${port}</span>`;
+              }
+
+              const isPublic = finding.scope === 'PUBLIC';
+              const borderColor = isPublic ? 'rgba(247,118,142,0.6)' : 'rgba(158,206,106,0.6)';
+              const background = isPublic ? 'rgba(247,118,142,0.18)' : 'rgba(158,206,106,0.18)';
+              const textColor = isPublic ? '#f7768e' : '#9ece6a';
+              const scopeLabel = isPublic ? 'RED' : 'LOCAL';
+              const riskLabel = finding.risk || 'LOW';
+
+              return `<span style="padding:5px 10px;border-radius:999px;border:1px solid ${borderColor};background:${background};color:${textColor};font-weight:700;font-family:Consolas, monospace;">:${port} ${scopeLabel} ${riskLabel}</span>`;
+            })
+            .join('');
+
+          const hidden = sortedPorts.length - 10;
+          openPortsEl.innerHTML = hidden > 0
+            ? `${chips}<span style="padding:5px 10px;border-radius:999px;border:1px solid rgba(224,175,104,0.5);background:rgba(224,175,104,0.16);color:#e0af68;font-weight:700;">+${hidden} mas</span>`
+            : chips;
+        };
+
+        const mitigationLabel = (status) => {
+          if (status === 'working') return 'Aplicando...';
+          if (status === 'done') return 'Mitigado';
+          if (status === 'error') return 'Error';
+          return 'Pendiente';
+        };
+
+        const mitigationColor = (status) => {
+          if (status === 'done') return '#9ece6a';
+          if (status === 'error') return '#f7768e';
+          if (status === 'working') return '#7dcfff';
+          return '#a9b1d6';
+        };
+
+        const renderMitigationActions = () => {
+          if (!actionsEl) {
+            return;
+          }
+
+          if (!scanCompleted) {
+            actionsEl.innerHTML = '<div style="padding:10px;border-radius:10px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.07);color:#8e95b9;">Las acciones de bloqueo estaran disponibles al terminar el escaneo.</div>';
+            return;
+          }
+
+          const orderedPorts = Array.from(openPorts).sort((a, b) => a - b);
+
+          if (!orderedPorts.length) {
+            actionsEl.innerHTML = '<div style="padding:10px;border-radius:10px;background:rgba(158,206,106,0.12);border:1px solid rgba(158,206,106,0.35);color:#9ece6a;">No hay puertos detectados para mitigar.</div>';
+            return;
+          }
+
+          actionsEl.innerHTML = orderedPorts
+            .map((port) => {
+              const finding = findingsByPort.get(port) || { scope: 'LOCAL', risk: 'LOW' };
+              const state = mitigationByPort.get(port) || 'idle';
+              const busy = state === 'working';
+              const done = state === 'done';
+
+              const scopeColor = finding.scope === 'PUBLIC' ? '#f7768e' : '#9ece6a';
+              const actionLabel = finding.scope === 'PUBLIC' ? 'Bloquear puerto' : 'Bloquear (opcional)';
+
+              return `
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border-radius:10px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);">
+                  <div style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+                    <span style="color:#c0caf5;font-weight:700;font-family:Consolas, monospace;">:${port}</span>
+                    <span style="font-size:11px;color:${scopeColor};">${finding.scope} · RIESGO ${finding.risk || 'LOW'}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                    <span style="font-size:11px;color:${mitigationColor(state)};">${mitigationLabel(state)}</span>
+                    <button class="btn"
+                      data-action="block-port"
+                      data-port="${port}"
+                      ${busy || done ? 'disabled' : ''}
+                      style="font-size:11px;background:${done ? '#27C93F' : 'var(--accent-blue)'};color:#fff;opacity:${busy || done ? '0.72' : '1'};"
+                    >${done ? 'Aplicado' : actionLabel}</button>
+                  </div>
+                </div>
+              `;
+            })
+            .join('');
+        };
+
+        const waitForManualClose = (timeoutMs = 300000) => {
+          return new Promise((resolve) => {
+            let settled = false;
+
+            const finish = (reason) => {
+              if (settled) {
+                return;
+              }
+
+              settled = true;
+              clearTimeout(timeoutId);
+              closeButton?.removeEventListener('click', onClose);
+              modal?.removeEventListener('click', onBackdropClick);
+              resolve(reason);
+            };
+
+            const onClose = () => finish('manual');
+            const onBackdropClick = (event) => {
+              if (event.target === modal) {
+                finish('backdrop');
+              }
+            };
+
+            const timeoutId = setTimeout(() => finish('timeout'), timeoutMs);
+
+            closeButton?.addEventListener('click', onClose);
+            modal?.addEventListener('click', onBackdropClick);
+          });
+        };
+
+        const updateGlobalButtons = () => {
+          const hasPorts = openPorts.size > 0;
+          const summaryPublic = Number(summaryData?.public_count);
+          const hasPublicPorts = Array.from(findingsByPort.values()).some((item) => item.scope === 'PUBLIC')
+            || (Number.isInteger(summaryPublic) && summaryPublic > 0);
+
+          const summaryPorts = Array.isArray(summaryData?.ports)
+            ? summaryData.ports.map((port) => Number(port)).filter((port) => Number.isInteger(port))
+            : [];
+          const hasSmbPort = openPorts.has(139)
+            || openPorts.has(445)
+            || summaryPorts.includes(139)
+            || summaryPorts.includes(445);
+
+          forcePublicButton.style.display = scanCompleted && hasPublicPorts ? 'inline-flex' : 'none';
+          hardenSmbButton.style.display = scanCompleted && hasSmbPort ? 'inline-flex' : 'none';
+
+          const smbBusy = smbHardenStatus === 'working';
+          const smbDone = smbHardenStatus === 'done';
+          hardenSmbButton.disabled = smbBusy || smbDone;
+          hardenSmbButton.textContent = smbBusy
+            ? 'Blindaje SMB...'
+            : (smbDone ? 'SMB protegido' : 'Blindaje SMB');
+          hardenSmbButton.style.opacity = smbBusy || smbDone ? '0.72' : '1';
+
+          const profileBusy = profileHardenStatus === 'working';
+          const profileDone = profileHardenStatus === 'done';
+          forcePublicButton.disabled = profileBusy || profileDone;
+          forcePublicButton.textContent = profileBusy
+            ? 'Aplicando perfil...'
+            : (profileDone ? 'Perfil publico activo' : 'Forzar red publica');
+          forcePublicButton.style.opacity = profileBusy || profileDone ? '0.72' : '1';
+
+          closeButton.textContent = hasPorts ? 'Cerrar panel' : 'Cerrar';
+        };
+
+        const blockPortSafely = async (port) => {
+          if (isGlobalMitigationBusy) {
+            return;
+          }
+
+          isGlobalMitigationBusy = true;
+          mitigationByPort.set(port, 'working');
+          renderMitigationActions();
+
+          try {
+            await this.api.system.blockPort(port);
+            mitigationByPort.set(port, 'done');
+            const finding = findingsByPort.get(port);
+            if (finding) {
+              findingsByPort.set(port, {
+                ...finding,
+                mitigated: true
+              });
+            }
+            messageEl.textContent = `Puerto ${port} bloqueado en firewall (TCP/UDP inbound).`;
+          } catch (error) {
+            mitigationByPort.set(port, 'error');
+            messageEl.textContent = error?.message || `No se pudo mitigar el puerto ${port}.`;
+          } finally {
+            isGlobalMitigationBusy = false;
+            renderMitigationActions();
+            renderOpenPorts();
+            updateGlobalButtons();
+          }
+        };
+
+        const hardenSmbSafely = async () => {
+          if (isGlobalMitigationBusy || smbHardenStatus === 'done') {
+            return;
+          }
+
+          isGlobalMitigationBusy = true;
+          smbHardenStatus = 'working';
+          updateGlobalButtons();
+
+          try {
+            await this.api.system.hardenSmb();
+            smbHardenStatus = 'done';
+            mitigationByPort.set(139, 'done');
+            mitigationByPort.set(445, 'done');
+            messageEl.textContent = 'Hardening SMB aplicado. SMB1 deshabilitado y puertos SMB bloqueados.';
+          } catch (error) {
+            smbHardenStatus = 'error';
+            messageEl.textContent = error?.message || 'No se pudo aplicar hardening SMB.';
+          } finally {
+            isGlobalMitigationBusy = false;
+            renderMitigationActions();
+            updateGlobalButtons();
+          }
+        };
+
+        const forcePublicProfileSafely = async () => {
+          if (isGlobalMitigationBusy || profileHardenStatus === 'done') {
+            return;
+          }
+
+          isGlobalMitigationBusy = true;
+          profileHardenStatus = 'working';
+          updateGlobalButtons();
+
+          try {
+            await this.api.system.forcePublicNetwork();
+            profileHardenStatus = 'done';
+            messageEl.textContent = 'Perfiles de red activos cambiados a Public para endurecer exposicion.';
+          } catch (error) {
+            profileHardenStatus = 'error';
+            messageEl.textContent = error?.message || 'No se pudo forzar el perfil de red a publico.';
+          } finally {
+            isGlobalMitigationBusy = false;
+            updateGlobalButtons();
+          }
+        };
+
+        actionsEl?.addEventListener('click', (event) => {
+          const button = event.target?.closest('button[data-action="block-port"]');
+          if (!button) {
+            return;
+          }
+
+          const port = Number(button.getAttribute('data-port'));
+          if (!Number.isInteger(port)) {
+            return;
+          }
+
+          blockPortSafely(port).catch(() => {});
+        });
+
+        hardenSmbButton?.addEventListener('click', () => {
+          hardenSmbSafely().catch(() => {});
+        });
+
+        forcePublicButton?.addEventListener('click', () => {
+          forcePublicProfileSafely().catch(() => {});
+        });
+
+        renderMitigationActions();
+        updateGlobalButtons();
+
+        const formatFinalPorts = () => {
+          const ordered = Array.from(openPorts).sort((a, b) => a - b);
+          if (!ordered.length) {
+            return 'ninguno';
+          }
+
+          return ordered
+            .map((port) => {
+              const finding = findingsByPort.get(port);
+              if (!finding) {
+                return String(port);
+              }
+              const scopeLabel = finding.scope === 'PUBLIC' ? 'RED' : 'LOCAL';
+              return `${port} (${scopeLabel})`;
+            })
+            .join(', ');
+        };
+
+        const parseStructuredLine = (line) => {
+          if (line.startsWith('[PORT_RESULT]')) {
+            const rawPayload = line.slice('[PORT_RESULT]'.length).trim();
+
+            try {
+              const payload = JSON.parse(rawPayload);
+              const port = Number(payload?.port);
+              if (!Number.isInteger(port)) {
+                return true;
+              }
+
+              const scope = String(payload?.scope || 'LOCAL').toUpperCase() === 'PUBLIC' ? 'PUBLIC' : 'LOCAL';
+              const maybeRisk = String(payload?.risk || 'LOW').toUpperCase();
+              const risk = ['LOW', 'MEDIUM', 'HIGH'].includes(maybeRisk) ? maybeRisk : 'LOW';
+              const binds = Array.isArray(payload?.binds)
+                ? payload.binds.map((item) => String(item || '').trim()).filter(Boolean)
+                : [];
+
+              findingsByPort.set(port, {
+                scope,
+                risk,
+                binds,
+                service: String(payload?.service || '')
+              });
+
+              openPorts.add(port);
+              targetChecked = totalDangerPorts;
+              openEl.textContent = String(openPorts.size);
+
+              const bindText = binds.length ? binds.join(', ') : 'desconocido';
+              messageEl.textContent = scope === 'PUBLIC'
+                ? `Puerto ${port} expuesto en red (${bindText}).`
+                : `Puerto ${port} solo local (${bindText}).`;
+
+              renderOpenPorts();
+              updateRiskStateFromFindings();
+              renderMitigationActions();
+              updateGlobalButtons();
+            } catch {
+              // Se mantiene parser por texto como respaldo.
+            }
+
+            return true;
+          }
+
+          if (line.startsWith('[PORT_SUMMARY]')) {
+            const rawPayload = line.slice('[PORT_SUMMARY]'.length).trim();
+
+            try {
+              summaryData = JSON.parse(rawPayload);
+              const parsedOpen = Number(summaryData?.open_count);
+              if (Number.isInteger(parsedOpen)) {
+                summaryOpenPorts = parsedOpen;
+                openEl.textContent = String(parsedOpen);
+              }
+              targetChecked = totalDangerPorts;
+              updateRiskStateFromFindings();
+              renderMitigationActions();
+              updateGlobalButtons();
+            } catch {
+              // No-op: fallback con parser por texto.
+            }
+
+            return true;
+          }
+
+          return false;
+        };
+
+        progressTimer = setInterval(() => {
+          const elapsedSeconds = ((Date.now() - startedAt) / 1000).toFixed(1);
+          elapsedEl.textContent = `${elapsedSeconds}s`;
+
+          if (isRunning) {
+            const targetProgress = Math.min(93, (targetChecked / totalDangerPorts) * 88 + 5);
+            virtualProgress += (targetProgress - virtualProgress) * 0.08;
+          } else {
+            virtualProgress += (100 - virtualProgress) * 0.22;
+          }
+
+          virtualChecked += (targetChecked - virtualChecked) * 0.08;
+          checkedEl.textContent = String(Math.max(0, Math.min(totalDangerPorts, Math.round(virtualChecked))));
+          progressEl.style.width = `${Math.min(100, virtualProgress)}%`;
+        }, 33);
+
+        const processStdoutChunk = (textChunk) => {
+          const lines = String(textChunk || '')
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter(Boolean);
+
+          if (!lines.length) {
+            return;
+          }
+
+          for (const line of lines) {
+            if (parseStructuredLine(line)) {
+              continue;
+            }
+
+            const lowerLine = line.toLowerCase();
+
+            if (lowerLine.includes('escaneando')) {
+              stageEl.textContent = 'Escaneando';
+              messageEl.textContent = 'Explorando puertos locales con verificacion concurrente...';
+              targetChecked = 10;
+            }
+
+            if (lowerLine.includes('alerta roja')) {
+              messageEl.textContent = line;
+            }
+
+            if (lowerLine.includes('[ok] excelente')) {
+              summaryOpenPorts = 0;
+              targetChecked = totalDangerPorts;
+            }
+
+            const summaryMatch = lowerLine.match(/se encontraron\s+(\d+)\s+puertos/i);
+            if (summaryMatch) {
+              summaryOpenPorts = Number(summaryMatch[1]);
+              targetChecked = totalDangerPorts;
+              messageEl.textContent = line;
+            }
+
+            const portMatches = line.matchAll(/puerto\s+(\d+)/gi);
+            for (const match of portMatches) {
+              const port = Number(match[1]);
+              if (Number.isInteger(port)) {
+                openPorts.add(port);
+              }
+            }
+
+            if (openPorts.size > 0) {
+              openEl.textContent = String(openPorts.size);
+              updateRiskStateFromFindings();
+              renderOpenPorts();
+            }
+          }
+        };
+
+        const response = await this.api.scripts.run({
+          scriptId: script.id,
+          scriptName: script.name,
+          args,
+          elevated: Boolean(script.requiresAdmin)
+        });
+
+        if (response?.error) {
+          throw new Error(response.error);
+        }
+
+        if (!response?.processId) {
+          throw new Error('No se recibio el identificador del proceso de escaneo');
+        }
+
+        processId = response.processId;
+        this.markProcessStarted(processId);
+        this.onProcessStarted(processId);
+        this.render();
+
+        stageEl.textContent = 'Escaneando';
+        messageEl.textContent = 'Escaneo activo. Monitorizando salida del detector de puertos...';
+
+        const exitPayload = await new Promise((resolve) => {
+          const timeoutId = setTimeout(() => {
+            resolve({ type: 'exit', processId, code: -1, timeout: true });
+          }, 180000);
+
+          terminalUnsub = this.api.events.onTerminalData((payload) => {
+            if (!payload || payload.processId !== processId) {
+              return;
+            }
+
+            if (payload.type === 'stdout') {
+              processStdoutChunk(payload.text || '');
+              return;
+            }
+
+            if (payload.type === 'stderr' || payload.type === 'error') {
+              stageEl.textContent = 'Atencion';
+              messageEl.textContent = payload.text || payload.message || 'Error durante la inspeccion de puertos.';
+              return;
+            }
+
+            if (payload.type === 'exit') {
+              clearTimeout(timeoutId);
+              resolve(payload);
+            }
+          });
+        });
+
+        isRunning = false;
+        targetChecked = totalDangerPorts;
+
+        const detectedCount = openPorts.size;
+        const structuredOpenCount = Number(summaryData?.open_count);
+        const effectiveOpenCount = Number.isInteger(structuredOpenCount)
+          ? structuredOpenCount
+          : (Number.isInteger(summaryOpenPorts) ? Math.max(summaryOpenPorts, detectedCount) : detectedCount);
+
+        const structuredPublicCount = Number(summaryData?.public_count);
+        const effectivePublicCount = Number.isInteger(structuredPublicCount)
+          ? structuredPublicCount
+          : Array.from(findingsByPort.values()).filter((item) => item.scope === 'PUBLIC').length;
+
+        const structuredHighCount = Number(summaryData?.high_count);
+        const effectiveHighCount = Number.isInteger(structuredHighCount)
+          ? structuredHighCount
+          : Array.from(findingsByPort.values()).filter((item) => item.risk === 'HIGH').length;
+
+        const finalPortsText = formatFinalPorts();
+
+        openEl.textContent = String(effectiveOpenCount);
+        updateRiskStateFromFindings();
+        progressEl.style.width = '100%';
+        renderOpenPorts();
+
+        if (exitPayload?.timeout) {
+          stageEl.textContent = 'Timeout';
+          messageEl.textContent = 'El escaneo tardo demasiado. Revisa la terminal para mas detalles.';
+          titleEl.style.color = '#f7768e';
+          topBarEl.style.background = 'linear-gradient(90deg,#f7768e,#ff9e64)';
+          progressEl.style.background = 'linear-gradient(90deg,#f7768e,#ff9e64)';
+          await new Promise((resolve) => setTimeout(resolve, 2300));
+          return;
+        }
+
+        if (Number(exitPayload?.code) !== 0) {
+          stageEl.textContent = 'Error';
+          messageEl.textContent = 'El detector de puertos finalizo con errores. Consulta la terminal.';
+          titleEl.style.color = '#f7768e';
+          topBarEl.style.background = 'linear-gradient(90deg,#f7768e,#ff9e64)';
+          progressEl.style.background = 'linear-gradient(90deg,#f7768e,#ff9e64)';
+          await new Promise((resolve) => setTimeout(resolve, 2300));
+          return;
+        }
+
+        if (effectiveOpenCount > 0) {
+          scanCompleted = true;
+
+          if (effectivePublicCount > 0) {
+            const highRisk = effectiveHighCount > 0;
+            stageEl.textContent = highRisk ? 'Riesgo Alto' : 'Riesgo Medio';
+            messageEl.textContent = `Puertos finales: ${finalPortsText}. ${effectivePublicCount} estan expuestos en red y requieren revision.`;
+            titleEl.style.color = highRisk ? '#f7768e' : '#e0af68';
+            topBarEl.style.background = highRisk
+              ? 'linear-gradient(90deg,#f7768e,#ff9e64)'
+              : 'linear-gradient(90deg,#e0af68,#ff9e64)';
+            progressEl.style.background = highRisk
+              ? 'linear-gradient(90deg,#f7768e,#ff9e64)'
+              : 'linear-gradient(90deg,#e0af68,#ff9e64)';
+          } else {
+            stageEl.textContent = 'Solo Local';
+            messageEl.textContent = `Puertos finales: ${finalPortsText}. Estan abiertos solo en local, riesgo externo bajo.`;
+            titleEl.style.color = '#9ece6a';
+            topBarEl.style.background = 'linear-gradient(90deg,#9ece6a,#73daca)';
+            progressEl.style.background = 'linear-gradient(90deg,#9ece6a,#73daca)';
+            riskEl.textContent = 'LOW';
+            riskEl.style.color = '#9ece6a';
+          }
+
+          renderMitigationActions();
+          updateGlobalButtons();
+          await waitForManualClose();
+          return;
+        }
+
+        stageEl.textContent = 'Sistema Blindado';
+        messageEl.textContent = 'No se detectaron puertos peligrosos abiertos en este escaneo local. Puertos finales: ninguno.';
+        titleEl.style.color = '#9ece6a';
+        topBarEl.style.background = 'linear-gradient(90deg,#9ece6a,#73daca)';
+        progressEl.style.background = 'linear-gradient(90deg,#9ece6a,#73daca)';
+        riskEl.textContent = 'LOW';
+        riskEl.style.color = '#9ece6a';
+        await new Promise((resolve) => setTimeout(resolve, 1800));
+      } finally {
+        isRunning = false;
+
+        if (terminalUnsub) {
+          terminalUnsub();
+        }
+
+        if (progressTimer) {
+          clearInterval(progressTimer);
+        }
+
+        if (modal && modal.parentNode) {
+          modal.style.opacity = '0';
+          modal.style.transform = 'scale(1.02)';
+          await new Promise((resolve) => setTimeout(resolve, 320));
+          if (modal.parentNode) {
+            modal.remove();
+          }
+        }
+
+        if (cardActions) {
+          cardActions.style.display = oldActionsStyle;
+        }
+      }
+    }
+
+    /**
+     * V3: Flujo visual para iniciar/detener Immich con progreso en vivo.
+     * @param {HTMLElement} card
+     * @param {boolean} shouldStart
+     */
+    async startVisualImmich(card, shouldStart = true) {
+      if (!card) return;
+
+      const cardActions = card.querySelector('.card-actions');
+      const oldActionsStyle = cardActions ? cardActions.style.display : 'flex';
+      if (cardActions) cardActions.style.display = 'none';
+
+      let progressUnsub = null;
+      let modal = null;
+
+      try {
+        modal = document.createElement('div');
+        Object.assign(modal.style, {
+          position: 'fixed', inset: '0', zIndex: '999999',
+          background: 'rgba(8, 12, 20, 0.88)', backdropFilter: 'blur(14px)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center',
+          fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+          transition: 'all 0.35s ease', opacity: '0'
+        });
+
+        const accentColor = shouldStart ? '#7aa2f7' : '#f7768e';
+        const doneColor = '#9ece6a';
+
+        modal.innerHTML = `
+          <div style="background:#1a1b26;border:1px solid #3b4261;border-radius:18px;padding:36px;width:620px;max-width:90vw;box-shadow:0 24px 60px rgba(0,0,0,.65);position:relative;overflow:hidden;">
+            <div id="immich-top-bar" style="position:absolute;top:0;left:0;right:0;height:4px;background:${accentColor};box-shadow:0 0 18px ${accentColor};"></div>
+            <h2 id="immich-title" style="margin:0 0 18px 0;color:${accentColor};font-size:30px;letter-spacing:2px;text-transform:uppercase;font-weight:800;">
+              ${shouldStart ? 'Arranque Immich' : 'Apagado Immich'}
+            </h2>
+
+            <div id="immich-stage" style="display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(122,162,247,.15);color:${accentColor};font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;">
+              PREPARANDO
+            </div>
+
+            <div id="immich-message" style="color:#c0caf5;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;min-height:50px;line-height:1.35;margin-bottom:16px;">
+              ${shouldStart ? 'Inicializando secuencia de despliegue...' : 'Inicializando secuencia de apagado...'}
+            </div>
+
+            <div style="height:12px;background:rgba(0,0,0,.55);border-radius:999px;overflow:hidden;">
+              <div id="immich-progress" style="height:100%;width:8%;background:linear-gradient(90deg, ${accentColor}, #7dcfff);box-shadow:0 0 16px ${accentColor};transition:width .35s ease;"></div>
+            </div>
+
+            <div style="margin-top:12px;color:#a9b1d6;font-size:12px;letter-spacing:.8px;text-transform:uppercase;">Docker + WSL Orchestrator</div>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+        requestAnimationFrame(() => {
+          modal.style.opacity = '1';
+        });
+
+        const stageEl = modal.querySelector('#immich-stage');
+        const messageEl = modal.querySelector('#immich-message');
+        const progressEl = modal.querySelector('#immich-progress');
+        const titleEl = modal.querySelector('#immich-title');
+        const topBarEl = modal.querySelector('#immich-top-bar');
+
+        const startSteps = {
+          checking: { pct: 14, stage: 'CHECKING', label: 'Verificando carpeta y prerequisitos...' },
+          checking_engine: { pct: 28, stage: 'DOCKER', label: 'Comprobando estado del motor Docker...' },
+          waking_engine: { pct: 44, stage: 'WAKE', label: 'Despertando Docker Desktop...' },
+          waking_engine_wait: { pct: 58, stage: 'WAIT', label: 'Esperando confirmación del motor...' },
+          deploying: { pct: 84, stage: 'DEPLOY', label: 'Levantando contenedores de Immich...' },
+          done: { pct: 100, stage: 'ONLINE', label: 'Servidor Immich operativo.' }
+        };
+
+        const stopSteps = {
+          checking: { pct: 20, stage: 'CHECKING', label: 'Verificando estado del motor Docker...' },
+          stopping: { pct: 55, stage: 'STOPPING', label: 'Apagando contenedores activos...' },
+          killing_engine: { pct: 82, stage: 'PURGE', label: 'Cerrando Docker y liberando VmmemWSL...' },
+          done: { pct: 100, stage: 'OFFLINE', label: 'Servicios detenidos y memoria liberada.' }
+        };
+
+        const stepMap = shouldStart ? startSteps : stopSteps;
+
+        const applyStep = (status, text) => {
+          const step = stepMap[status] || {};
+          if (typeof step.pct === 'number') {
+            progressEl.style.width = `${step.pct}%`;
+          }
+          stageEl.textContent = step.stage || String(status || 'PROCESSING').toUpperCase();
+          messageEl.textContent = text || step.label || 'Procesando...';
+        };
+
+        applyStep('checking');
+
+        if (window.horus?.events?.onSystemProgress) {
+          progressUnsub = window.horus.events.onSystemProgress((data) => {
+            if (!data || !data.status || !stepMap[data.status]) {
+              return;
+            }
+            applyStep(data.status, data.text);
+          });
+        }
+
+        if (shouldStart) {
+          await window.horus.system.startImmich();
+        } else {
+          await window.horus.system.stopImmich();
+        }
+
+        progressEl.style.width = '100%';
+        progressEl.style.background = `linear-gradient(90deg, ${doneColor}, #73daca)`;
+        progressEl.style.boxShadow = `0 0 16px ${doneColor}`;
+        stageEl.textContent = 'COMPLETADO';
+        stageEl.style.background = 'rgba(158,206,106,.18)';
+        stageEl.style.color = doneColor;
+        messageEl.textContent = shouldStart
+          ? 'Immich en línea. Docker quedó listo para recibir tráfico.'
+          : 'Immich detenido. Docker y VmmemWSL fueron purgados.';
+        messageEl.style.color = '#9ece6a';
+        titleEl.style.color = doneColor;
+        topBarEl.style.background = doneColor;
+        topBarEl.style.boxShadow = `0 0 18px ${doneColor}`;
+
+        await new Promise((resolve) => setTimeout(resolve, 1300));
+      } catch (error) {
+        if (modal) {
+          const stageEl = modal.querySelector('#immich-stage');
+          const messageEl = modal.querySelector('#immich-message');
+          const progressEl = modal.querySelector('#immich-progress');
+          const titleEl = modal.querySelector('#immich-title');
+          const topBarEl = modal.querySelector('#immich-top-bar');
+
+          if (stageEl) {
+            stageEl.textContent = 'ERROR';
+            stageEl.style.background = 'rgba(247,118,142,.18)';
+            stageEl.style.color = '#f7768e';
+          }
+
+          if (messageEl) {
+            messageEl.textContent = error?.message || 'No se pudo completar la operación de Immich.';
+            messageEl.style.color = '#f7768e';
+          }
+
+          if (progressEl) {
+            progressEl.style.background = 'linear-gradient(90deg, #f7768e, #ff9e64)';
+          }
+
+          if (titleEl) {
+            titleEl.style.color = '#f7768e';
+          }
+
+          if (topBarEl) {
+            topBarEl.style.background = '#f7768e';
+            topBarEl.style.boxShadow = '0 0 18px #f7768e';
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 2800));
+        }
+
+        throw error;
+      } finally {
+        if (progressUnsub) {
+          progressUnsub();
+        }
+
+        if (modal && modal.parentNode) {
+          modal.style.opacity = '0';
+          await new Promise((resolve) => setTimeout(resolve, 320));
+          if (modal.parentNode) modal.remove();
+        }
+
+        if (cardActions) {
+          cardActions.style.display = oldActionsStyle;
+        }
       }
     }
 }
